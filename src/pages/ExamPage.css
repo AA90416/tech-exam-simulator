@@ -1,0 +1,165 @@
+.exam-page {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.exam-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.exam-header__info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.exam-header__info h1 {
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin: 0;
+}
+
+.mode-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.mode-badge--practice {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.mode-badge--real {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.exam-header__right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.exam-content {
+  display: flex;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.exam-main {
+  flex: 1;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+}
+
+.exam-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.exam-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.control-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control-btn--primary {
+  background: #6366f1;
+  color: white;
+}
+
+.control-btn--primary:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.control-btn--secondary {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.control-btn--secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.control-btn--show-answer {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.control-btn--show-answer:hover {
+  background: #fde68a;
+}
+
+.control-btn--finish {
+  background: #22c55e;
+  color: white;
+}
+
+.control-btn--finish:hover {
+  background: #16a34a;
+}
+
+.finish-btn {
+  width: 100%;
+  padding: 16px;
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.finish-btn:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+@media (max-width: 900px) {
+  .exam-content {
+    flex-direction: column-reverse;
+  }
+
+  .exam-sidebar {
+    width: 100%;
+  }
+}

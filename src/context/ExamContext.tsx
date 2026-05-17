@@ -1,6 +1,26 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { Exam, ExamMode, UserAnswer, ExamResult } from '../types/exam';
+import type { Exam, ExamMode, UserAnswer, ExamResult, ExamHistory } from '../types/exam';
+import { useAuth } from './AuthContext';
+
+function saveExamHistory(username: string, result: ExamResult, exam: Exam, mode: ExamMode) {
+  const key = `exam-results-${username}`;
+  const existing: ExamHistory[] = JSON.parse(localStorage.getItem(key) || '[]');
+  const entry: ExamHistory = {
+    id: `hist-${Date.now()}`,
+    examId: exam.id,
+    examTitle: exam.title,
+    score: result.score,
+    passed: result.passed,
+    correctAnswers: result.correctAnswers,
+    totalQuestions: result.totalQuestions,
+    timeSpent: result.timeSpent,
+    completedAt: new Date().toISOString(),
+    mode,
+  };
+  existing.unshift(entry);
+  localStorage.setItem(key, JSON.stringify(existing.slice(0, 50)));
+}
 
 interface ExamContextType {
   currentExam: Exam | null;
@@ -26,6 +46,7 @@ interface ExamContextType {
 const ExamContext = createContext<ExamContextType | undefined>(undefined);
 
 export function ExamProvider({ children }: { children: ReactNode }) {
+  const { currentUser } = useAuth();
   const [currentExam, setCurrentExam] = useState<Exam | null>(null);
   const [mode, setMode] = useState<ExamMode>('practice');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -110,7 +131,19 @@ export function ExamProvider({ children }: { children: ReactNode }) {
       timeSpent,
     });
     setIsExamFinished(true);
-  }, [currentExam, userAnswers, startTime]);
+
+    if (currentUser) {
+      saveExamHistory(currentUser.username, {
+        examId: currentExam.id,
+        totalQuestions: currentExam.questions.length,
+        correctAnswers,
+        score,
+        passed: score >= currentExam.passingScore,
+        answers: userAnswers,
+        timeSpent,
+      }, currentExam, mode);
+    }
+  }, [currentExam, userAnswers, startTime, currentUser, mode]);
 
   const updateTimeRemaining = useCallback((time: number) => {
     setTimeRemaining(time);

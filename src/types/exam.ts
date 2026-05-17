@@ -37,3 +37,16 @@ export interface ExamResult {
 }
 
 export type ExamMode = 'practice' | 'real';
+
+export interface ExamHistory {
+  id: string;
+  examId: string;
+  examTitle: string;
+  score: number;
+  passed: boolean;
+  correctAnswers: number;
+  totalQuestions: number;
+  timeSpent: number;
+  completedAt: string; // ISO date string
+  mode: ExamMode;
+}

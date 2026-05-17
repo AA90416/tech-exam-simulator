@@ -3,14 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { allExams } from '../data/exams';
 import { useExam } from '../context/ExamContext';
 import { useSettings } from '../context/SettingsContext';
-import type { Exam, ExamMode } from '../types/exam';
+import { useAuth } from '../context/AuthContext';
+import type { Exam, ExamMode, ExamHistory } from '../types/exam';
 import './Home.css';
 
 export function Home() {
   const navigate = useNavigate();
   const { startExam } = useExam();
   const { isApiKeySet } = useSettings();
+  const { currentUser, logout } = useAuth();
   const [customExams, setCustomExams] = useState<Exam[]>([]);
+  const [history, setHistory] = useState<ExamHistory[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem('custom-exams');
@@ -22,6 +25,18 @@ export function Home() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      const key = `exam-results-${currentUser.username}`;
+      try {
+        const saved = JSON.parse(localStorage.getItem(key) || '[]');
+        setHistory(saved.slice(0, 5));
+      } catch {
+        setHistory([]);
+      }
+    }
+  }, [currentUser]);
 
   const handleStartExam = (exam: Exam, mode: ExamMode) => {
     startExam(exam, mode);
@@ -41,11 +56,17 @@ export function Home() {
       <header className="home__header">
         <div className="home__header-top">
           <h1>Tech Exam Simulator</h1>
-          <button className="admin-btn" onClick={() => navigate('/admin')}>
-            Settings
-          </button>
+          <div className="header-actions">
+            {currentUser?.role === 'admin' && (
+              <button className="admin-btn" onClick={() => navigate('/admin')}>Settings</button>
+            )}
+            <button className="logout-btn" onClick={logout}>Log Out</button>
+          </div>
         </div>
         <p>Practice for your certification exams with realistic questions</p>
+        {currentUser && (
+          <p className="welcome-text">Welcome, <strong>{currentUser.username}</strong></p>
+        )}
         {!isApiKeySet && (
           <div className="api-key-notice">
             <span>Configure your OpenAI API key in </span>
@@ -117,6 +138,27 @@ export function Home() {
           );
         })}
       </div>
+
+      {history.length > 0 && (
+        <section className="recent-activity">
+          <h2 className="recent-activity__title">Recent Activity</h2>
+          <div className="activity-list">
+            {history.map(entry => (
+              <div key={entry.id} className="activity-item">
+                <div className="activity-item__info">
+                  <span className="activity-item__exam">{entry.examTitle}</span>
+                  <span className="activity-item__meta">
+                    {entry.mode === 'real' ? 'Real Exam' : 'Practice'} · {new Date(entry.completedAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <span className={`activity-score ${entry.passed ? 'activity-score--pass' : 'activity-score--fail'}`}>
+                  {Math.round(entry.score)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

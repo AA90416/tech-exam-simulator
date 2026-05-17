@@ -1,34 +1,48 @@
 .exam-page {
   min-height: 100vh;
+  min-height: 100dvh;
   background: #f8fafc;
+  display: flex;
+  flex-direction: column;
 }
 
 .exam-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
+  padding: 12px 16px;
   background: #fff;
   border-bottom: 1px solid #e2e8f0;
+  gap: 10px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .exam-header__info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+  min-width: 0;
 }
 
 .exam-header__info h1 {
-  font-size: 1.25rem;
+  font-size: clamp(0.9rem, 3vw, 1.2rem);
   color: #1e293b;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
 .mode-badge {
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .mode-badge--practice {
@@ -44,59 +58,66 @@
 .exam-header__right {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .progress-text {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   color: #64748b;
+  white-space: nowrap;
 }
 
 .exam-content {
   display: flex;
-  gap: 24px;
+  gap: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 16px;
+  width: 100%;
+  flex: 1;
 }
 
 .exam-main {
   flex: 1;
   background: #fff;
-  border-radius: 16px;
+  border-radius: 14px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 32px;
+  padding: 20px 16px;
+  min-width: 0;
 }
 
 .exam-sidebar {
-  width: 280px;
+  width: 240px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .exam-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 32px;
-  padding-top: 24px;
+  margin-top: 24px;
+  padding-top: 16px;
   border-top: 1px solid #e2e8f0;
+  gap: 8px;
 }
 
 .control-btn {
-  padding: 12px 24px;
+  padding: 11px 18px;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .control-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -138,11 +159,11 @@
 
 .finish-btn {
   width: 100%;
-  padding: 16px;
+  padding: 14px;
   background: #f1f5f9;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 1rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #475569;
   cursor: pointer;
@@ -154,12 +175,39 @@
   color: #6366f1;
 }
 
-@media (max-width: 900px) {
+/* Mobile: sidebar goes below main */
+@media (max-width: 768px) {
   .exam-content {
-    flex-direction: column-reverse;
+    flex-direction: column;
+    padding: 12px;
+    gap: 12px;
   }
 
   .exam-sidebar {
     width: 100%;
+    order: 2;
+  }
+
+  .exam-main {
+    order: 1;
+    padding: 16px 14px;
+  }
+
+  .exam-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .control-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 12px;
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .exam-header__info h1 {
+    max-width: 120px;
   }
 }

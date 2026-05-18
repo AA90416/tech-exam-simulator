@@ -36,6 +36,23 @@
   white-space: nowrap;
 }
 
+.account-btn {
+  padding: 8px 14px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #4338ca;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.account-btn:hover {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
 .admin-btn:hover {
   background: #e2e8f0;
   color: #1e293b;

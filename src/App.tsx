@@ -8,6 +8,7 @@ import { Results } from './pages/Results';
 import { Admin } from './pages/Admin';
 import { CreateExam } from './pages/CreateExam';
 import { Login } from './pages/Login';
+import { Account } from './pages/Account';
 import './App.css';
 
 function ProtectedRoutes() {
@@ -23,6 +24,7 @@ function ProtectedRoutes() {
       <Route path="/exam" element={<ExamPage />} />
       <Route path="/results" element={<Results />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="/account" element={<Account />} />
       <Route path="/create" element={<CreateExam />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

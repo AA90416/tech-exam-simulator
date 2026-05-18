@@ -13,6 +13,8 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   addUser: (username: string, password: string, role: 'admin' | 'user') => Promise<AppUser>;
+  resetPassword: (username: string, password: string) => Promise<boolean>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   removeUser: (username: string) => void;
   isAuthenticated: boolean;
 }
@@ -70,6 +72,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return newUser;
   }, []);
 
+  const resetPassword = useCallback(async (username: string, password: string) => {
+    const normalizedUsername = username.toLowerCase();
+    const existingUsers = loadUsers();
+    const existingUser = existingUsers.find(user => user.username.toLowerCase() === normalizedUsername);
+
+    if (!existingUser) {
+      return false;
+    }
+
+    const hash = await hashPassword(password);
+    const updatedUser: AppUser = {
+      ...existingUser,
+      passwordHash: hash,
+    };
+    const updated = existingUsers.map(user => (
+      user.username.toLowerCase() === normalizedUsername ? updatedUser : user
+    ));
+
+    saveUsers(updated);
+    setUsers(updated);
+
+    setCurrentUser(prev => (
+      prev && prev.username.toLowerCase() === normalizedUsername ? updatedUser : prev
+    ));
+
+    return true;
+  }, []);
+
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    if (!currentUser) {
+      return false;
+    }
+
+    const currentHash = await hashPassword(currentPassword);
+    if (currentUser.passwordHash !== currentHash) {
+      return false;
+    }
+
+    const newHash = await hashPassword(newPassword);
+    const updatedUser: AppUser = {
+      ...currentUser,
+      passwordHash: newHash,
+    };
+    const updated = loadUsers().map(user => (
+      user.username.toLowerCase() === currentUser.username.toLowerCase() ? updatedUser : user
+    ));
+
+    saveUsers(updated);
+    setUsers(updated);
+    setCurrentUser(updatedUser);
+
+    return true;
+  }, [currentUser]);
+
   const removeUser = useCallback((username: string) => {
     const updated = loadUsers().filter(u => u.username.toLowerCase() !== username.toLowerCase());
     saveUsers(updated);
@@ -78,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{
-      currentUser, users, login, logout, addUser, removeUser,
+      currentUser, users, login, logout, addUser, resetPassword, changePassword, removeUser,
       isAuthenticated: currentUser !== null,
     }}>
       {children}

@@ -4,17 +4,22 @@ import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
 export function Login() {
-  const { login, users, addUser } = useAuth();
+  const { login, users, addUser, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
+  const [showReset, setShowReset] = useState(false);
   const [setupUsername, setSetupUsername] = useState('');
   const [setupPassword, setSetupPassword] = useState('');
   const [setupConfirm, setSetupConfirm] = useState('');
   const [setupError, setSetupError] = useState('');
+  const [resetUsername, setResetUsername] = useState('');
+  const [resetNewPassword, setResetNewPassword] = useState('');
+  const [resetConfirm, setResetConfirm] = useState('');
+  const [resetError, setResetError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
   const isFirstTime = users.length === 0;
@@ -23,7 +28,18 @@ export function Login() {
     setError('');
     setSuccessMessage('');
     setSetupError('');
+    setResetError('');
+    setShowReset(false);
     setShowSetup(true);
+  };
+
+  const openReset = () => {
+    setError('');
+    setSuccessMessage('');
+    setSetupError('');
+    setResetError('');
+    setShowSetup(false);
+    setShowReset(true);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -68,6 +84,41 @@ export function Login() {
     setSetupConfirm('');
     setShowSetup(false);
     setSuccessMessage('Account created. Sign in with your username and password.');
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError('');
+    setSuccessMessage('');
+
+    const normalizedUsername = resetUsername.trim();
+    if (!normalizedUsername) return setResetError('Username is required.');
+    if (!users.some(user => user.username.toLowerCase() === normalizedUsername.toLowerCase())) {
+      return setResetError('That username was not found on this device.');
+    }
+    if (resetNewPassword.length < 4) return setResetError('Password must be at least 4 characters.');
+    if (resetNewPassword !== resetConfirm) return setResetError('Passwords do not match.');
+
+    const resetWorked = await resetPassword(normalizedUsername, resetNewPassword);
+
+    if (!resetWorked) {
+      setResetError('Unable to reset that password.');
+      return;
+    }
+
+    const success = await login(normalizedUsername, resetNewPassword);
+    if (success) {
+      navigate('/', { replace: true });
+      return;
+    }
+
+    setUsername(normalizedUsername);
+    setPassword('');
+    setResetUsername('');
+    setResetNewPassword('');
+    setResetConfirm('');
+    setShowReset(false);
+    setSuccessMessage('Password reset. Sign in with your new password.');
   };
 
   if (showSetup) {
@@ -133,6 +184,69 @@ export function Login() {
     );
   }
 
+  if (showReset) {
+    return (
+      <div className="login-page">
+        <div className="login-card">
+          <div className="login-logo">
+            <span className="login-logo__icon">📋</span>
+          </div>
+          <h1>Tech Exam Simulator</h1>
+          <p className="login-subtitle">Reset password for an existing local account</p>
+          <p className="login-helper-text">This only works for accounts already saved in this browser on this device.</p>
+
+          <form onSubmit={handleResetPassword} className="login-form">
+            <div className="login-field">
+              <label htmlFor="resetUsername">Username</label>
+              <input
+                id="resetUsername"
+                type="text"
+                value={resetUsername}
+                onChange={e => setResetUsername(e.target.value)}
+                placeholder="Enter existing username"
+                autoComplete="username"
+                autoCapitalize="none"
+              />
+            </div>
+            <div className="login-field">
+              <label htmlFor="resetNewPassword">New Password</label>
+              <input
+                id="resetNewPassword"
+                type="password"
+                value={resetNewPassword}
+                onChange={e => setResetNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                autoComplete="new-password"
+              />
+            </div>
+            <div className="login-field">
+              <label htmlFor="resetConfirm">Confirm New Password</label>
+              <input
+                id="resetConfirm"
+                type="password"
+                value={resetConfirm}
+                onChange={e => setResetConfirm(e.target.value)}
+                placeholder="Confirm new password"
+                autoComplete="new-password"
+              />
+            </div>
+            {resetError && <p className="login-error">{resetError}</p>}
+            <button
+              type="submit"
+              className="login-btn"
+              disabled={!resetUsername.trim() || !resetNewPassword || !resetConfirm}
+            >
+              Reset Password
+            </button>
+            <button type="button" className="login-link" onClick={() => setShowReset(false)}>
+              Back to Login
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="login-page">
       <div className="login-card">
@@ -186,9 +300,12 @@ export function Login() {
           </button>
           {!isFirstTime && (
             <div className="login-actions-footer">
-              <span className="login-helper-text">Need a new account on this device?</span>
+              <span className="login-helper-text">Need a new account or forgot your password?</span>
               <button type="button" className="login-link" onClick={openSetup}>
                 Create Account
+              </button>
+              <button type="button" className="login-link" onClick={openReset}>
+                Forgot Password?
               </button>
             </div>
           )}

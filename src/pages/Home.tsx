@@ -90,6 +90,7 @@ export function Home() {
         <div className="home__header-top">
           <h1>Tech Exam Simulator</h1>
           <div className="header-actions">
+            <button className="account-btn" onClick={() => navigate('/account')}>Change Password</button>
             {currentUser?.role === 'admin' && (
               <button className="admin-btn" onClick={() => navigate('/admin')}>Settings</button>
             )}

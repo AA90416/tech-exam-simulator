@@ -15,6 +15,7 @@ export function Login() {
   const [setupPassword, setSetupPassword] = useState('');
   const [setupConfirm, setSetupConfirm] = useState('');
   const [setupError, setSetupError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const isFirstTime = users.length === 0;
 
@@ -23,6 +24,7 @@ export function Login() {
     if (!username.trim() || !password) return;
     setLoading(true);
     setError('');
+    setSuccessMessage('');
     const success = await login(username.trim(), password);
     if (success) {
       navigate('/', { replace: true });
@@ -35,17 +37,21 @@ export function Login() {
   const handleSetup = async (e: React.FormEvent) => {
     e.preventDefault();
     setSetupError('');
+    setSuccessMessage('');
     if (!setupUsername.trim()) return setSetupError('Username is required.');
     if (setupPassword.length < 4) return setSetupError('Password must be at least 4 characters.');
     if (setupPassword !== setupConfirm) return setSetupError('Passwords do not match.');
     await addUser(setupUsername.trim(), setupPassword, 'admin');
-    const success = await login(setupUsername.trim(), setupPassword);
-    if (success) {
-      navigate('/', { replace: true });
-    }
+    setUsername(setupUsername.trim());
+    setPassword('');
+    setSetupUsername('');
+    setSetupPassword('');
+    setSetupConfirm('');
+    setShowSetup(false);
+    setSuccessMessage('Account created. Sign in with your username and password.');
   };
 
-  if (isFirstTime || showSetup) {
+  if (showSetup) {
     return (
       <div className="login-page">
         <div className="login-card">
@@ -53,9 +59,7 @@ export function Login() {
             <span className="login-logo__icon">📋</span>
           </div>
           <h1>Tech Exam Simulator</h1>
-          <p className="login-subtitle">
-            {isFirstTime ? 'Create your admin account to get started' : 'Create a new account'}
-          </p>
+          <p className="login-subtitle">{isFirstTime ? 'Create your admin account to get started' : 'Create a new account'}</p>
 
           <form onSubmit={handleSetup} className="login-form">
             <div className="login-field">
@@ -100,11 +104,9 @@ export function Login() {
             >
               Create Account
             </button>
-            {!isFirstTime && (
-              <button type="button" className="login-link" onClick={() => setShowSetup(false)}>
-                Back to Login
-              </button>
-            )}
+            <button type="button" className="login-link" onClick={() => setShowSetup(false)}>
+              Back to Login
+            </button>
           </form>
         </div>
       </div>
@@ -119,6 +121,15 @@ export function Login() {
         </div>
         <h1>Tech Exam Simulator</h1>
         <p className="login-subtitle">Sign in to continue</p>
+
+        {isFirstTime && (
+          <div className="login-notice">
+            <p>No local account has been created in this browser yet.</p>
+            <button type="button" className="login-btn login-btn--secondary" onClick={() => setShowSetup(true)}>
+              Create Admin Account
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="login-form">
           <div className="login-field">
@@ -144,11 +155,12 @@ export function Login() {
               autoComplete="current-password"
             />
           </div>
+          {successMessage && <p className="login-success">{successMessage}</p>}
           {error && <p className="login-error">{error}</p>}
           <button
             type="submit"
             className="login-btn"
-            disabled={!username.trim() || !password || loading}
+            disabled={!username.trim() || !password || loading || isFirstTime}
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>

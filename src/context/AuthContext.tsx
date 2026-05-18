@@ -18,7 +18,6 @@ interface AuthContextType {
 }
 
 const USERS_KEY = 'exam-simulator-users';
-const SESSION_KEY = 'exam-simulator-session';
 
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -40,15 +39,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<AppUser[]>(loadUsers);
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => {
-    const session = sessionStorage.getItem(SESSION_KEY);
-    if (!session) return null;
-    try {
-      const { username } = JSON.parse(session);
-      const allUsers = loadUsers();
-      return allUsers.find(u => u.username === username) ?? null;
-    } catch { return null; }
-  });
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
 
   const login = useCallback(async (username: string, password: string): Promise<boolean> => {
     const hash = await hashPassword(password);
@@ -56,7 +47,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const user = allUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.passwordHash === hash);
     if (user) {
       setCurrentUser(user);
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ username: user.username }));
       return true;
     }
     return false;
@@ -64,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     setCurrentUser(null);
-    sessionStorage.removeItem(SESSION_KEY);
   }, []);
 
   const addUser = useCallback(async (username: string, password: string, role: 'admin' | 'user') => {

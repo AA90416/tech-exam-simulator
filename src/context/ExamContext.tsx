@@ -1,5 +1,9 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
+import {
+  isMultiSelectQuestion,
+  isQuestionCorrect,
+} from '../types/exam';
 import type { Exam, ExamMode, UserAnswer, ExamResult, ExamHistory } from '../types/exam';
 import { useAuth } from './AuthContext';
 
@@ -61,7 +65,7 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     setCurrentExam(exam);
     setMode(examMode);
     setCurrentQuestionIndex(0);
-    setUserAnswers(exam.questions.map(q => ({ questionId: q.id, selectedAnswerId: null })));
+    setUserAnswers(exam.questions.map(q => ({ questionId: q.id, selectedAnswerIds: [] })));
     setShowAnswer(false);
     setTimeRemaining(examMode === 'real' ? exam.timeLimit * 60 : 0);
     setIsExamFinished(false);
@@ -77,7 +81,14 @@ export function ExamProvider({ children }: { children: ReactNode }) {
       const currentQuestion = currentExam.questions[currentQuestionIndex];
       const answerIndex = newAnswers.findIndex(a => a.questionId === currentQuestion.id);
       if (answerIndex !== -1) {
-        newAnswers[answerIndex] = { ...newAnswers[answerIndex], selectedAnswerId: answerId };
+        const currentSelections = newAnswers[answerIndex].selectedAnswerIds;
+        const nextSelections = isMultiSelectQuestion(currentQuestion)
+          ? currentSelections.includes(answerId)
+            ? currentSelections.filter(id => id !== answerId)
+            : [...currentSelections, answerId]
+          : [answerId];
+
+        newAnswers[answerIndex] = { ...newAnswers[answerIndex], selectedAnswerIds: nextSelections };
       }
       return newAnswers;
     });
@@ -114,9 +125,9 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     if (!currentExam) return;
 
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
-    const correctAnswers = userAnswers.filter((ua, index) => {
-      const question = currentExam.questions[index];
-      return ua.selectedAnswerId === question.correctAnswerId;
+    const correctAnswers = currentExam.questions.filter(question => {
+      const userAnswer = userAnswers.find(answer => answer.questionId === question.id);
+      return isQuestionCorrect(question, userAnswer);
     }).length;
 
     const score = Math.round((correctAnswers / currentExam.questions.length) * 100);

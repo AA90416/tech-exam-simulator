@@ -30,8 +30,15 @@
 .question__text {
   font-size: clamp(1rem, 3vw, 1.2rem);
   color: #1e293b;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
   line-height: 1.5;
+}
+
+.question__selection-hint {
+  margin: 0 0 16px;
+  color: #475569;
+  font-size: 0.88rem;
+  font-weight: 500;
 }
 
 .answers {

@@ -7,6 +7,18 @@ import { useAuth } from '../context/AuthContext';
 import type { Exam, ExamMode, ExamHistory } from '../types/exam';
 import './Home.css';
 
+function getExamGroupName(exam: Exam) {
+  if (exam.group) {
+    return exam.group;
+  }
+
+  if (exam.id.startsWith('custom-')) {
+    return 'Custom Exams';
+  }
+
+  return 'General';
+}
+
 export function Home() {
   const navigate = useNavigate();
   const { startExam } = useExam();
@@ -14,6 +26,7 @@ export function Home() {
   const { currentUser, logout } = useAuth();
   const [customExams, setCustomExams] = useState<Exam[]>([]);
   const [history, setHistory] = useState<ExamHistory[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('custom-exams');
@@ -44,12 +57,32 @@ export function Home() {
   };
 
   const handleDeleteCustomExam = (examId: string) => {
+    const examToDelete = customExams.find(e => e.id === examId);
     const updated = customExams.filter(e => e.id !== examId);
     setCustomExams(updated);
     localStorage.setItem('custom-exams', JSON.stringify(updated));
+
+    if (examToDelete) {
+      const groupName = getExamGroupName(examToDelete);
+      const remainingInGroup = updated.filter(exam => getExamGroupName(exam) === groupName);
+
+      if (selectedGroup === groupName && remainingInGroup.length === 0) {
+        setSelectedGroup(null);
+      }
+    }
   };
 
   const allAvailableExams = [...allExams, ...customExams];
+  const groupedExams = allAvailableExams.reduce<Record<string, Exam[]>>((groups, exam) => {
+    const groupName = getExamGroupName(exam);
+    if (!groups[groupName]) {
+      groups[groupName] = [];
+    }
+    groups[groupName].push(exam);
+    return groups;
+  }, {});
+  const groupEntries = Object.entries(groupedExams);
+  const selectedGroupExams = selectedGroup ? groupedExams[selectedGroup] ?? [] : [];
 
   return (
     <div className="home">
@@ -87,57 +120,97 @@ export function Home() {
         <span className="create-exam-banner__arrow">→</span>
       </div>
 
-      <div className="exam-list">
-        {allAvailableExams.map(exam => {
-          const isCustom = exam.id.startsWith('custom-');
-          return (
-            <div key={exam.id} className="exam-card">
-              <div className="exam-card__content">
-                <div className="exam-card__title-row">
-                  <h2 className="exam-card__title">{exam.title}</h2>
-                  {isCustom && (
-                    <span className="custom-badge">AI Generated</span>
-                  )}
+      {!selectedGroup ? (
+        <div className="subject-list">
+          {groupEntries.map(([groupName, exams]) => {
+            const totalQuestions = exams.reduce((sum, exam) => sum + exam.questions.length, 0);
+            return (
+              <button
+                key={groupName}
+                type="button"
+                className="subject-card"
+                onClick={() => setSelectedGroup(groupName)}
+              >
+                <div className="subject-card__content">
+                  <span className="subject-card__eyebrow">Subject Group</span>
+                  <h2 className="subject-card__title">{groupName}</h2>
+                  <p className="subject-card__description">
+                    {exams.length} {exams.length === 1 ? 'exam' : 'exams'} · {totalQuestions} questions available
+                  </p>
                 </div>
-                <p className="exam-card__description">{exam.description}</p>
-                <div className="exam-card__meta">
-                  <span>{exam.questions.length} questions</span>
-                  <span>{exam.timeLimit} minutes</span>
-                  <span>Pass: {exam.passingScore}%</span>
-                </div>
-              </div>
-              <div className="exam-card__actions">
-                <button
-                  className="btn btn--practice"
-                  onClick={() => handleStartExam(exam, 'practice')}
-                >
-                  Practice Mode
-                  <span className="btn__hint">View answers as you go</span>
-                </button>
-                <button
-                  className="btn btn--real"
-                  onClick={() => handleStartExam(exam, 'real')}
-                >
-                  Real Exam
-                  <span className="btn__hint">Timed, see results at end</span>
-                </button>
-                {isCustom && (
-                  <button
-                    className="btn btn--delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteCustomExam(exam.id);
-                    }}
-                    title="Delete exam"
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
+                <span className="subject-card__arrow">→</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <>
+          <div className="subject-toolbar">
+            <button
+              className="back-to-groups-btn"
+              onClick={() => setSelectedGroup(null)}
+            >
+              ← All Subjects
+            </button>
+            <div>
+              <p className="subject-toolbar__eyebrow">Subject Group</p>
+              <h2 className="subject-toolbar__title">{selectedGroup}</h2>
             </div>
-          );
-        })}
-      </div>
+          </div>
+
+          <div className="exam-list">
+            {selectedGroupExams.map(exam => {
+              const isCustom = exam.id.startsWith('custom-');
+              return (
+                <div key={exam.id} className="exam-card">
+                  <div className="exam-card__content">
+                    <div className="exam-card__title-row">
+                      <h2 className="exam-card__title">{exam.title}</h2>
+                      {isCustom && (
+                        <span className="custom-badge">AI Generated</span>
+                      )}
+                    </div>
+                    <p className="exam-card__description">{exam.description}</p>
+                    <div className="exam-card__meta">
+                      <span>{exam.questions.length} questions</span>
+                      <span>{exam.timeLimit} minutes</span>
+                      <span>Pass: {exam.passingScore}%</span>
+                    </div>
+                  </div>
+                  <div className="exam-card__actions">
+                    <button
+                      className="btn btn--practice"
+                      onClick={() => handleStartExam(exam, 'practice')}
+                    >
+                      Practice Mode
+                      <span className="btn__hint">View answers as you go</span>
+                    </button>
+                    <button
+                      className="btn btn--real"
+                      onClick={() => handleStartExam(exam, 'real')}
+                    >
+                      Real Exam
+                      <span className="btn__hint">Timed, see results at end</span>
+                    </button>
+                    {isCustom && (
+                      <button
+                        className="btn btn--delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCustomExam(exam.id);
+                        }}
+                        title="Delete exam"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       {history.length > 0 && (
         <section className="recent-activity">

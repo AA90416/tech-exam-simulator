@@ -1,3 +1,4 @@
+import { isQuestionAnswered } from '../types/exam';
 import { useNavigate } from 'react-router-dom';
 import { useExam } from '../context/ExamContext';
 import { Question } from '../components/Question';
@@ -27,7 +28,7 @@ export function ExamPage() {
 
   const currentQuestion = currentExam.questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === currentExam.questions.length - 1;
-  const answeredCount = userAnswers.filter(a => a.selectedAnswerId !== null).length;
+  const answeredCount = userAnswers.filter(answer => isQuestionAnswered(answer)).length;
 
   const handleFinish = () => {
     finishExam();

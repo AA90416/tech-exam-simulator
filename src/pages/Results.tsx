@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCorrectAnswerIds, isQuestionCorrect } from '../types/exam';
 import { useExam } from '../context/ExamContext';
 import './Results.css';
 
@@ -72,8 +73,9 @@ export function Results() {
           <h2>Answer Review</h2>
           {currentExam.questions.map((question, index) => {
             const userAnswer = userAnswers.find(a => a.questionId === question.id);
-            const selectedId = userAnswer?.selectedAnswerId;
-            const isCorrect = selectedId === question.correctAnswerId;
+            const selectedIds = userAnswer?.selectedAnswerIds ?? [];
+            const correctAnswerIds = getCorrectAnswerIds(question);
+            const isCorrect = isQuestionCorrect(question, userAnswer);
 
             return (
               <div key={question.id} className={`review-item ${isCorrect ? 'review-item--correct' : 'review-item--incorrect'}`}>
@@ -91,8 +93,8 @@ export function Results() {
 
                 <div className="review-answers">
                   {question.answers.map((answer, i) => {
-                    const isSelected = answer.id === selectedId;
-                    const isCorrectAnswer = answer.id === question.correctAnswerId;
+                    const isSelected = selectedIds.includes(answer.id);
+                    const isCorrectAnswer = correctAnswerIds.includes(answer.id);
 
                     let className = 'review-answer';
                     if (isCorrectAnswer) className += ' review-answer--correct';

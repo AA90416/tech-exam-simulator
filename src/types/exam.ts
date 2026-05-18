@@ -8,6 +8,7 @@ export interface Question {
   text: string;
   answers: Answer[];
   correctAnswerId: string;
+  correctAnswerIds?: string[];
   explanation?: string;
   category?: string;
 }
@@ -19,11 +20,12 @@ export interface Exam {
   timeLimit: number; // in minutes
   passingScore: number; // percentage
   questions: Question[];
+  group?: string;
 }
 
 export interface UserAnswer {
   questionId: string;
-  selectedAnswerId: string | null;
+  selectedAnswerIds: string[];
 }
 
 export interface ExamResult {
@@ -49,4 +51,28 @@ export interface ExamHistory {
   timeSpent: number;
   completedAt: string; // ISO date string
   mode: ExamMode;
+}
+
+export function getCorrectAnswerIds(question: Question): string[] {
+  const answerIds = question.correctAnswerIds?.length
+    ? question.correctAnswerIds
+    : [question.correctAnswerId];
+
+  return Array.from(new Set(answerIds));
+}
+
+export function isMultiSelectQuestion(question: Question): boolean {
+  return getCorrectAnswerIds(question).length > 1;
+}
+
+export function isQuestionAnswered(userAnswer?: UserAnswer): boolean {
+  return (userAnswer?.selectedAnswerIds?.length ?? 0) > 0;
+}
+
+export function isQuestionCorrect(question: Question, userAnswer?: UserAnswer): boolean {
+  const selectedAnswerIds = Array.from(new Set(userAnswer?.selectedAnswerIds ?? [])).sort();
+  const correctAnswerIds = [...getCorrectAnswerIds(question)].sort();
+
+  return selectedAnswerIds.length === correctAnswerIds.length
+    && selectedAnswerIds.every((answerId, index) => answerId === correctAnswerIds[index]);
 }

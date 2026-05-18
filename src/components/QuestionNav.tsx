@@ -1,3 +1,4 @@
+import { isQuestionAnswered, isQuestionCorrect } from '../types/exam';
 import { useExam } from '../context/ExamContext';
 import './QuestionNav.css';
 
@@ -19,10 +20,10 @@ export function QuestionNav() {
       <div className="question-nav__grid">
         {currentExam.questions.map((question, index) => {
           const answer = userAnswers.find(a => a.questionId === question.id);
-          const isAnswered = answer?.selectedAnswerId !== null;
+          const isAnswered = isQuestionAnswered(answer);
           const isCurrent = index === currentQuestionIndex;
-          const isCorrect = isExamFinished && answer?.selectedAnswerId === question.correctAnswerId;
-          const isIncorrect = isExamFinished && answer?.selectedAnswerId && answer.selectedAnswerId !== question.correctAnswerId;
+          const isCorrect = isExamFinished && isQuestionCorrect(question, answer);
+          const isIncorrect = isExamFinished && isAnswered && !isCorrect;
 
           let className = 'question-nav__btn';
           if (isCurrent) className += ' question-nav__btn--current';

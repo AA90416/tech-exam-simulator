@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
 export function Login() {
   const { login, users, addUser } = useAuth();
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +24,9 @@ export function Login() {
     setLoading(true);
     setError('');
     const success = await login(username.trim(), password);
-    if (!success) {
+    if (success) {
+      navigate('/', { replace: true });
+    } else {
       setError('Incorrect username or password.');
     }
     setLoading(false);
@@ -35,8 +39,10 @@ export function Login() {
     if (setupPassword.length < 4) return setSetupError('Password must be at least 4 characters.');
     if (setupPassword !== setupConfirm) return setSetupError('Passwords do not match.');
     await addUser(setupUsername.trim(), setupPassword, 'admin');
-    // auto login
-    await login(setupUsername.trim(), setupPassword);
+    const success = await login(setupUsername.trim(), setupPassword);
+    if (success) {
+      navigate('/', { replace: true });
+    }
   };
 
   if (isFirstTime || showSetup) {

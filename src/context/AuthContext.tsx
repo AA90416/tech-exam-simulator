@@ -12,7 +12,7 @@ interface AuthContextType {
   users: AppUser[];
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  addUser: (username: string, password: string, role: 'admin' | 'user') => Promise<void>;
+  addUser: (username: string, password: string, role: 'admin' | 'user') => Promise<AppUser>;
   removeUser: (username: string) => void;
   isAuthenticated: boolean;
 }
@@ -33,6 +33,10 @@ function loadUsers(): AppUser[] {
     try { return JSON.parse(stored); } catch { return []; }
   }
   return [];
+}
+
+function saveUsers(users: AppUser[]) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,19 +63,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const addUser = useCallback(async (username: string, password: string, role: 'admin' | 'user') => {
     const hash = await hashPassword(password);
     const newUser: AppUser = { username, passwordHash: hash, role };
-    setUsers(prev => {
-      const updated = [...prev.filter(u => u.username !== username), newUser];
-      localStorage.setItem(USERS_KEY, JSON.stringify(updated));
-      return updated;
-    });
+    const existingUsers = loadUsers();
+    const updated = [...existingUsers.filter(u => u.username.toLowerCase() !== username.toLowerCase()), newUser];
+    saveUsers(updated);
+    setUsers(updated);
+    return newUser;
   }, []);
 
   const removeUser = useCallback((username: string) => {
-    setUsers(prev => {
-      const updated = prev.filter(u => u.username !== username);
-      localStorage.setItem(USERS_KEY, JSON.stringify(updated));
-      return updated;
-    });
+    const updated = loadUsers().filter(u => u.username.toLowerCase() !== username.toLowerCase());
+    saveUsers(updated);
+    setUsers(updated);
   }, []);
 
   return (

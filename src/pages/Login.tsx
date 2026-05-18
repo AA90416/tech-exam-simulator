@@ -38,11 +38,20 @@ export function Login() {
     e.preventDefault();
     setSetupError('');
     setSuccessMessage('');
-    if (!setupUsername.trim()) return setSetupError('Username is required.');
+    const normalizedUsername = setupUsername.trim();
+    if (!normalizedUsername) return setSetupError('Username is required.');
     if (setupPassword.length < 4) return setSetupError('Password must be at least 4 characters.');
     if (setupPassword !== setupConfirm) return setSetupError('Passwords do not match.');
-    await addUser(setupUsername.trim(), setupPassword, 'admin');
-    setUsername(setupUsername.trim());
+
+    await addUser(normalizedUsername, setupPassword, 'admin');
+    const success = await login(normalizedUsername, setupPassword);
+
+    if (success) {
+      navigate('/', { replace: true });
+      return;
+    }
+
+    setUsername(normalizedUsername);
     setPassword('');
     setSetupUsername('');
     setSetupPassword('');

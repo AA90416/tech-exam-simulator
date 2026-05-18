@@ -19,6 +19,13 @@ export function Login() {
 
   const isFirstTime = users.length === 0;
 
+  const openSetup = () => {
+    setError('');
+    setSuccessMessage('');
+    setSetupError('');
+    setShowSetup(true);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password) return;
@@ -42,8 +49,11 @@ export function Login() {
     if (!normalizedUsername) return setSetupError('Username is required.');
     if (setupPassword.length < 4) return setSetupError('Password must be at least 4 characters.');
     if (setupPassword !== setupConfirm) return setSetupError('Passwords do not match.');
+    if (users.some(user => user.username.toLowerCase() === normalizedUsername.toLowerCase())) {
+      return setSetupError('Username already exists. Sign in or choose a different username.');
+    }
 
-    await addUser(normalizedUsername, setupPassword, 'admin');
+    await addUser(normalizedUsername, setupPassword, isFirstTime ? 'admin' : 'user');
     const success = await login(normalizedUsername, setupPassword);
 
     if (success) {
@@ -68,7 +78,8 @@ export function Login() {
             <span className="login-logo__icon">📋</span>
           </div>
           <h1>Tech Exam Simulator</h1>
-          <p className="login-subtitle">{isFirstTime ? 'Create your admin account to get started' : 'Create a new account'}</p>
+          <p className="login-subtitle">{isFirstTime ? 'Create your admin account to get started' : 'Create a new account for this device'}</p>
+          <p className="login-helper-text">Accounts are saved in this browser so you can sign in again later.</p>
 
           <form onSubmit={handleSetup} className="login-form">
             <div className="login-field">
@@ -111,7 +122,7 @@ export function Login() {
               className="login-btn"
               disabled={!setupUsername.trim() || !setupPassword || !setupConfirm}
             >
-              Create Account
+              {isFirstTime ? 'Create Admin Account' : 'Create Account'}
             </button>
             <button type="button" className="login-link" onClick={() => setShowSetup(false)}>
               Back to Login
@@ -133,8 +144,8 @@ export function Login() {
 
         {isFirstTime && (
           <div className="login-notice">
-            <p>No local account was found for this browser and app URL. If you used a different localhost port yesterday, that account will not appear here.</p>
-            <button type="button" className="login-btn login-btn--secondary" onClick={() => setShowSetup(true)}>
+            <p>No local account was found for this browser and app URL. Create one now and it will be saved here for future logins.</p>
+            <button type="button" className="login-btn login-btn--secondary" onClick={openSetup}>
               Create Admin Account
             </button>
           </div>
@@ -173,6 +184,14 @@ export function Login() {
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
+          {!isFirstTime && (
+            <div className="login-actions-footer">
+              <span className="login-helper-text">Need a new account on this device?</span>
+              <button type="button" className="login-link" onClick={openSetup}>
+                Create Account
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

@@ -38,6 +38,13 @@
   font-size: 0.9rem;
 }
 
+.login-helper-text {
+  margin: -16px 0 20px;
+  color: #64748b;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
 .login-form {
   display: flex;
   flex-direction: column;
@@ -105,6 +112,18 @@
   margin: 0 0 12px;
   color: #475569;
   font-size: 0.9rem;
+}
+
+.login-actions-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.login-actions-footer .login-helper-text {
+  margin: 0;
 }
 
 .login-btn {

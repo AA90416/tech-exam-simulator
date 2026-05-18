@@ -124,7 +124,7 @@ export function Login() {
 
         {isFirstTime && (
           <div className="login-notice">
-            <p>No local account has been created in this browser yet.</p>
+            <p>No local account was found for this browser and app URL. If you used a different localhost port yesterday, that account will not appear here.</p>
             <button type="button" className="login-btn login-btn--secondary" onClick={() => setShowSetup(true)}>
               Create Admin Account
             </button>
